@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Scheduling Algorithm Calculator</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        input, select, button {
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 15px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .process-inputs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .process-input {
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f4fc;
+            border-radius: 5px;
+            display: none;
+        }
+        .gantt-chart {
+            display: flex;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .gantt-block {
+            min-width: 50px;
+            height: 50px;
+            border: 1px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #e74c3c;
+            color: white;
+            font-weight: bold;
+        }
+        .time-mark {
+            position: absolute;
+            top: 55px;
+            font-size: 12px;
+        }
+        .algorithm-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #3498db;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            color: #333;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            background-color: white;
+        }
+        .active-tab {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>CPU Scheduling Algorithm Calculator</h1>
+    
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'calculator')">Calculator</button>
+        <button class="tablinks" onclick="openTab(event, 'info')">Algorithm Information</button>
+    </div>
+    
+    <div id="calculator" class="tabcontent active-tab">
+        <div class="container">
+            <h2>Process Information</h2>
+            <div>
+                <label for="algorithm">Select Algorithm:</label>
+                <select id="algorithm">
+                    <option value="fcfs">First Come First Serve (FCFS)</option>
+                    <option value="sjf">Shortest Job First (SJF) - Non-Preemptive</option>
+                    <option value="srtf">Shortest Remaining Time First (SRTF) - Preemptive</option>
+                    <option value="priority">Priority Scheduling - Non-Preemptive</option>
+                    <option value="priority_p">Priority Scheduling - Preemptive</option>
+                    <option value="rr">Round Robin (RR)</option>
+                </select>
+            </div>
+            
+            <div id="timeQuantumContainer" style="display: none;">
+                <label for="timeQuantum">Time Quantum:</label>
+                <input type="number" id="timeQuantum" min="1" value="2">
+            </div>
+            
+            <div class="process-inputs" id="processInputs">
+                <div class="process-input">
+                    <label>Process ID</label>
+                    <input type="text" value="P1" class="pid" readonly>
+                    <label>Arrival Time</label>
+                    <input type="number" class="arrival" min="0" value="0">
+                    <label>Burst Time</label>
+                    <input type="number" class="burst" min="1" value="5">
+                    <label>Priority</label>
+                    <input type="number" class="priority" min="1" value="1">
+                </div>
+            </div>
+            
+            <button onclick="addProcess()">Add Process</button>
+            <button onclick="removeProcess()">Remove Process</button>
+            <button onclick="calculate()">Calculate</button>
+            <button onclick="reset()">Reset</button>
+            
+            <div id="results" class="results">
+                <h2>Results</h2>
+                <div id="resultTable"></div>
+                <h3>Gantt Chart</h3>
+                <div id="ganttChart" class="gantt-chart"></div>
+                <div id="metrics"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="info" class="tabcontent">
+        <div class="container">
+            <h2>CPU Scheduling Algorithms Information</h2>
+            
+            <div class="algorithm-info">
+                <h3>First Come First Serve (FCFS)</h3>
+                <p><strong>Type:</strong> Non-preemptive</p>
+                <p><strong>Description:</strong> Processes are executed in the order they arrive. The process that arrives first gets executed first.</p>
+                <p><strong>Advantages:</strong> Simple to understand and implement.</p>
+                <p><strong>Disadvantages:</strong> Poor performance as average wait time is high, convoy effect.</p>
+            </div>
+            
+            <div class="algorithm-info">
+                <h3>Shortest Job First (SJF)</h3>
+                <p><strong>Type:</strong> Non-preemptive</p>
+                <p><strong>Description:</strong> The process with the smallest burst time is executed next.</p>
+                <p><strong>Advantages:</strong> Minimizes average waiting time.</p>
+                <p><strong>Disadvantages:</strong> May lead to starvation of longer processes, difficult to predict burst time.</p>
+            </div>
+            
+            <div class="algorithm-info">
+                <h3>Shortest Remaining Time First (SRTF)</h3>
+                <p><strong>Type:</strong> Preemptive</p>
+                <p><strong>Description:</strong> Preemptive version of SJF. The process with the smallest remaining burst time is executed.</p>
+                <p><strong>Advantages:</strong> Better response time than SJF.</p>
+                <p><strong>Disadvantages:</strong> Higher overhead due to frequent context switches.</p>
+            </div>
+            
+            <div class="algorithm-info">
+                <h3>Priority Scheduling</h3>
+                <p><strong>Type:</strong> Both preemptive and non-preemptive versions</p>
+                <p><strong>Description:</strong> Processes are executed based on priority. Lower number typically means higher priority.</p>
+                <p><strong>Advantages:</strong> Important processes can be prioritized.</p>
+                <p><strong>Disadvantages:</strong> Can lead to starvation of lower priority processes.</p>
+            </div>
+            
+            <div class="algorithm-info">
+                <h3>Round Robin (RR)</h3>
+                <p><strong>Type:</strong> Preemptive</p>
+                <p><strong>Description:</strong> Each process gets a small unit of CPU time (time quantum). After this time has elapsed, the process is preempted and added to the end of the ready queue.</p>
+                <p><strong>Advantages:</strong> Fair allocation of CPU time, good response time.</p>
+                <p><strong>Disadvantages:</strong> Performance depends heavily on time quantum size.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let processCount = 1;
+        
+        // Tab functionality
+        function openTab(evt, tabName) {
+            const tabcontent = document.getElementsByClassName("tabcontent");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active-tab");
+            }
+            
+            const tablinks = document.getElementsByClassName("tablinks");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            
+            document.getElementById(tabName).classList.add("active-tab");
+            evt.currentTarget.className += " active";
+        }
+        
+        // Show/hide time quantum input based on algorithm selection
+        document.getElementById('algorithm').addEventListener('change', function() {
+            const algo = this.value;
+            const timeQuantumContainer = document.getElementById('timeQuantumContainer');
+            
+            if (algo === 'rr') {
+                timeQuantumContainer.style.display = 'block';
+            } else {
+                timeQuantumContainer.style.display = 'none';
+            }
+        });
+        
+        // Add new process
+        function addProcess() {
+            processCount++;
+            const processInputs = document.getElementById('processInputs');
+            const newProcess = document.createElement('div');
+            newProcess.className = 'process-input';
+            newProcess.innerHTML = `
+                <label>Process ID</label>
+                <input type="text" value="P${processCount}" class="pid" readonly>
+                <label>Arrival Time</label>
+                <input type="number" class="arrival" min="0" value="${processCount-1}">
+                <label>Burst Time</label>
+                <input type="number" class="burst" min="1" value="${Math.floor(Math.random() * 10) + 1}">
+                <label>Priority</label>
+                <input type="number" class="priority" min="1" value="${Math.floor(Math.random() * 5) + 1}">
+            `;
+            processInputs.appendChild(newProcess);
+        }
+        
+        // Remove last process
+        function removeProcess() {
+            if (processCount > 1) {
+                const processInputs = document.getElementById('processInputs');
+                processInputs.removeChild(processInputs.lastChild);
+                processCount--;
+            }
+        }
+        
+        // Reset all inputs
+        function reset() {
+            const processInputs = document.getElementById('processInputs');
+            processInputs.innerHTML = `
+                <div class="process-input">
+                    <label>Process ID</label>
+                    <input type="text" value="P1" class="pid" readonly>
+                    <label>Arrival Time</label>
+                    <input type="number" class="arrival" min="0" value="0">
+                    <label>Burst Time</label>
+                    <input type="number" class="burst" min="1" value="5">
+                    <label>Priority</label>
+                    <input type="number" class="priority" min="1" value="1">
+                </div>
+            `;
+            processCount = 1;
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('algorithm').value = 'fcfs';
+            document.getElementById('timeQuantumContainer').style.display = 'none';
+        }
+        
+        // Calculate scheduling
+        function calculate() {
+            const algorithm = document.getElementById('algorithm').value;
+            const timeQuantum = algorithm === 'rr' ? parseInt(document.getElementById('timeQuantum').value) : 0;
+            
+            // Get process data
+            const processes = [];
+            const processInputs = document.querySelectorAll('.process-input');
+            
+            processInputs.forEach((input, index) => {
+                processes.push({
+                    id: input.querySelector('.pid').value,
+                    arrivalTime: parseInt(input.querySelector('.arrival').value),
+                    burstTime: parseInt(input.querySelector('.burst').value),
+                    priority: parseInt(input.querySelector('.priority').value),
+                    remainingTime: parseInt(input.querySelector('.burst').value)
+                });
+            });
+            
+            let result;
+            
+            switch(algorithm) {
+                case 'fcfs':
+                    result = fcfs(processes);
+                    break;
+                case 'sjf':
+                    result = sjf(processes);
+                    break;
+                case 'srtf':
+                    result = srtf(processes);
+                    break;
+                case 'priority':
+                    result = priorityScheduling(processes, false);
+                    break;
+                case 'priority_p':
+                    result = priorityScheduling(processes, true);
+                    break;
+                case 'rr':
+                    result = roundRobin(processes, timeQuantum);
+                    break;
+                default:
+                    result = fcfs(processes);
+            }
+            
+            displayResults(result, processes);
+        }
+        
+        // First Come First Serve
+        function fcfs(processes) {
+            // Sort by arrival time
+            const sortedProcesses = [...processes].sort((a, b) => a.arrivalTime - b.arrivalTime);
+            
+            let currentTime = 0;
+            const ganttChart = [];
+            const result = [];
+            
+            for (const process of sortedProcesses) {
+                if (currentTime < process.arrivalTime) {
+                    currentTime = process.arrivalTime;
+                }
+                
+                const startTime = currentTime;
+                const completionTime = startTime + process.burstTime;
+                const turnaroundTime = completionTime - process.arrivalTime;
+                const waitingTime = turnaroundTime - process.burstTime;
+                
+                result.push({
+                    ...process,
+                    startTime,
+                    completionTime,
+                    turnaroundTime,
+                    waitingTime
+                });
+                
+                ganttChart.push({
+                    process: process.id,
+                    start: startTime,
+                    end: completionTime
+                });
+                
+                currentTime = completionTime;
+            }
+            
+            return { result, ganttChart };
+        }
+        
+        // Shortest Job First (Non-preemptive)
+        function sjf(processes) {
+            let currentTime = 0;
+            const completed = [];
+            const result = [];
+            const ganttChart = [];
+            const remainingProcesses = [...processes];
+            
+            while (remainingProcesses.length > 0) {
+                // Get processes that have arrived by currentTime
+                const availableProcesses = remainingProcesses.filter(p => p.arrivalTime <= currentTime);
+                
+                if (availableProcesses.length === 0) {
+                    currentTime++;
+                    continue;
+                }
+                
+                // Sort by burst time
+                availableProcesses.sort((a, b) => a.burstTime - b.burstTime);
+                const process = availableProcesses[0];
+                
+                const startTime = currentTime;
+                const completionTime = startTime + process.burstTime;
+                const turnaroundTime = completionTime - process.arrivalTime;
+                const waitingTime = turnaroundTime - process.burstTime;
+                
+                result.push({
+                    ...process,
+                    startTime,
+                    completionTime,
+                    turnaroundTime,
+                    waitingTime
+                });
+                
+                ganttChart.push({
+                    process: process.id,
+                    start: startTime,
+                    end: completionTime
+                });
+                
+                // Remove from remaining processes
+                const index = remainingProcesses.findIndex(p => p.id === process.id);
+                remainingProcesses.splice(index, 1);
+                
+                currentTime = completionTime;
+            }
+            
+            return { result, ganttChart };
+        }
+        
+        // Shortest Remaining Time First (Preemptive)
+        function srtf(processes) {
+            let currentTime = 0;
+            const completed = [];
+            const result = [];
+            const ganttChart = [];
+            const remainingProcesses = processes.map(p => ({ ...p, remainingTime: p.burstTime }));
+            
+            while (remainingProcesses.length > 0) {
+                // Get processes that have arrived by currentTime
+                const availableProcesses = remainingProcesses.filter(p => p.arrivalTime <= currentTime && p.remainingTime > 0);
+                
+                if (availableProcesses.length === 0) {
+                    currentTime++;
+                    continue;
+                }
+                
+                // Sort by remaining time
+                availableProcesses.sort((a, b) => a.remainingTime - b.remainingTime);
+                const process = availableProcesses[0];
+                
+                // Find index in remainingProcesses
+                const index = remainingProcesses.findIndex(p => p.id === process.id);
+                
+                // Execute for 1 unit of time
+                const startTime = currentTime;
+                remainingProcesses[index].remainingTime--;
+                currentTime++;
+                
+                // Check if process completed
+                if (remainingProcesses[index].remainingTime === 0) {
+                    const completionTime = currentTime;
+                    const turnaroundTime = completionTime - process.arrivalTime;
+                    const waitingTime = turnaroundTime - process.burstTime;
+                    
+                    result.push({
+                        ...process,
+                        startTime: getFirstStartTime(ganttChart, process.id, startTime),
+                        completionTime,
+                        turnaroundTime,
+                        waitingTime
+                    });
+                    
+                    // Remove from remaining processes
+                    remainingProcesses.splice(index, 1);
+                }
+                
+                // Add to Gantt chart
+                if (ganttChart.length > 0 && ganttChart[ganttChart.length - 1].process === process.id) {
+                    ganttChart[ganttChart.length - 1].end = currentTime;
+                } else {
+                    ganttChart.push({
+                        process: process.id,
+                        start: startTime,
+                        end: currentTime
+                    });
+                }
+            }
+            
+            return { result, ganttChart };
+        }
+        
+        // Priority Scheduling (both preemptive and non-preemptive)
+        function priorityScheduling(processes, preemptive) {
+            let currentTime = 0;
+            const completed = [];
+            const result = [];
+            const ganttChart = [];
+            const remainingProcesses = preemptive 
+                ? processes.map(p => ({ ...p, remainingTime: p.burstTime }))
+                : [...processes];
+            
+            while (remainingProcesses.length > 0) {
+                // Get processes that have arrived by currentTime
+                const availableProcesses = preemptive
+                    ? remainingProcesses.filter(p => p.arrivalTime <= currentTime && p.remainingTime > 0)
+                    : remainingProcesses.filter(p => p.arrivalTime <= currentTime);
+                
+                if (availableProcesses.length === 0) {
+                    currentTime++;
+                    continue;
+                }
+                
+                // Sort by priority (lower number = higher priority)
+                availableProcesses.sort((a, b) => a.priority - b.priority);
+                const process = availableProcesses[0];
+                
+                if (preemptive) {
+                    // Execute for 1 unit of time
+                    const startTime = currentTime;
+                    const index = remainingProcesses.findIndex(p => p.id === process.id);
+                    remainingProcesses[index].remainingTime--;
+                    currentTime++;
+                    
+                    // Check if process completed
+                    if (remainingProcesses[index].remainingTime === 0) {
+                        const completionTime = currentTime;
+                        const turnaroundTime = completionTime - process.arrivalTime;
+                        const waitingTime = turnaroundTime - process.burstTime;
+                        
+                        result.push({
+                            ...process,
+                            startTime: getFirstStartTime(ganttChart, process.id, startTime),
+                            completionTime,
+                            turnaroundTime,
+                            waitingTime
+                        });
+                        
+                        // Remove from remaining processes
+                        remainingProcesses.splice(index, 1);
+                    }
+                    
+                    // Add to Gantt chart
+                    if (ganttChart.length > 0 && ganttChart[ganttChart.length - 1].process === process.id) {
+                        ganttChart[ganttChart.length - 1].end = currentTime;
+                    } else {
+                        ganttChart.push({
+                            process: process.id,
+                            start: startTime,
+                            end: currentTime
+                        });
+                    }
+                } else {
+                    // Non-preemptive - execute entire burst time
+                    const startTime = currentTime;
+                    const completionTime = startTime + process.burstTime;
+                    const turnaroundTime = completionTime - process.arrivalTime;
+                    const waitingTime = turnaroundTime - process.burstTime;
+                    
+                    result.push({
+                        ...process,
+                        startTime,
+                        completionTime,
+                        turnaroundTime,
+                        waitingTime
+                    });
+                    
+                    ganttChart.push({
+                        process: process.id,
+                        start: startTime,
+                        end: completionTime
+                    });
+                    
+                    // Remove from remaining processes
+                    const index = remainingProcesses.findIndex(p => p.id === process.id);
+                    remainingProcesses.splice(index, 1);
+                    
+                    currentTime = completionTime;
+                }
+            }
+            
+            return { result, ganttChart };
+        }
+        
+        // Round Robin
+        function roundRobin(processes, timeQuantum) {
+            let currentTime = 0;
+            const completed = [];
+            const result = [];
+            const ganttChart = [];
+            const queue = [];
+            const remainingProcesses = processes.map(p => ({ ...p, remainingTime: p.burstTime }));
+            
+            // Initial queue population
+            remainingProcesses
+                .filter(p => p.arrivalTime <= currentTime)
+                .forEach(p => queue.push(p));
+                
+            while (remainingProcesses.length > 0) {
+                if (queue.length === 0) {
+                    currentTime++;
+                    // Check if any new processes arrived at this time
+                    remainingProcesses
+                        .filter(p => p.arrivalTime === currentTime)
+                        .forEach(p => queue.push(p));
+                    continue;
+                }
+                
+                const process = queue.shift();
+                const index = remainingProcesses.findIndex(p => p.id === process.id);
+                
+                const startTime = currentTime;
+                const executionTime = Math.min(timeQuantum, remainingProcesses[index].remainingTime);
+                remainingProcesses[index].remainingTime -= executionTime;
+                currentTime += executionTime;
+                
+                // Add new arrivals to queue
+                remainingProcesses
+                    .filter(p => 
+                        p.arrivalTime > startTime && 
+                        p.arrivalTime <= currentTime && 
+                        !queue.some(q => q.id === p.id) && 
+                        p.id !== process.id
+                    )
+                    .forEach(p => queue.push(p));
+                
+                // Check if process completed
+                if (remainingProcesses[index].remainingTime === 0) {
+                    const completionTime = currentTime;
+                    const turnaroundTime = completionTime - process.arrivalTime;
+                    const waitingTime = turnaroundTime - process.burstTime;
+                    
+                    result.push({
+                        ...process,
+                        startTime: getFirstStartTime(ganttChart, process.id, startTime),
+                        completionTime,
+                        turnaroundTime,
+                        waitingTime
+                    });
+                    
+                    // Remove from remaining processes
+                    remainingProcesses.splice(index, 1);
+                } else {
+                    // Add back to queue if not completed
+                    queue.push(process);
+                }
+                
+                // Add to Gantt chart
+                if (ganttChart.length > 0 && ganttChart[ganttChart.length - 1].process === process.id) {
+                    ganttChart[ganttChart.length - 1].end = currentTime;
+                } else {
+                    ganttChart.push({
+                        process: process.id,
+                        start: startTime,
+                        end: currentTime
+                    });
+                }
+            }
+            
+            return { result, ganttChart };
+        }
+        
+        // Helper function to get first start time for preemptive algorithms
+        function getFirstStartTime(ganttChart, processId, fallbackStart) {
+            const firstEntry = ganttChart.find(entry => entry.process === processId);
+            return firstEntry ? firstEntry.start : fallbackStart;
+        }
+        
+        // Display results
+        function displayResults(result, originalProcesses) {
+            const { result: calculatedResults, ganttChart } = result;
+            const resultsDiv = document.getElementById('results');
+            const resultTable = document.getElementById('resultTable');
+            const ganttChartDiv = document.getElementById('ganttChart');
+            const metricsDiv = document.getElementById('metrics');
+            
+            // Create result table
+            let tableHTML = `
+                <table>
+                    <tr>
+                        <th>Process</th>
+                        <th>Arrival Time</th>
+                        <th>Burst Time</th>
+                        <th>Priority</th>
+                        <th>Start Time</th>
+                        <th>Completion Time</th>
+                        <th>Turnaround Time</th>
+                        <th>Waiting Time</th>
+                    </tr>
+            `;
+            
+            // Sort results by process ID for consistent display
+            calculatedResults.sort((a, b) => a.id.localeCompare(b.id));
+            
+            let totalTurnaround = 0;
+            let totalWaiting = 0;
+            
+            calculatedResults.forEach(process => {
+                totalTurnaround += process.turnaroundTime;
+                totalWaiting += process.waitingTime;
+                
+                tableHTML += `
+                    <tr>
+                        <td>${process.id}</td>
+                        <td>${process.arrivalTime}</td>
+                        <td>${process.burstTime}</td>
+                        <td>${process.priority}</td>
+                        <td>${process.startTime}</td>
+                        <td>${process.completionTime}</td>
+                        <td>${process.turnaroundTime}</td>
+                        <td>${process.waitingTime}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `</table>`;
+            resultTable.innerHTML = tableHTML;
+            
+            // Calculate averages
+            const avgTurnaround = totalTurnaround / calculatedResults.length;
+            const avgWaiting = totalWaiting / calculatedResults.length;
+            
+            metricsDiv.innerHTML = `
+                <p><strong>Average Turnaround Time:</strong> ${avgTurnaround.toFixed(2)}</p>
+                <p><strong>Average Waiting Time:</strong> ${avgWaiting.toFixed(2)}</p>
+            `;
+            
+            // Create Gantt chart
+            ganttChartDiv.innerHTML = '';
+            
+            ganttChart.forEach((entry, index) => {
+                const block = document.createElement('div');
+                block.className = 'gantt-block';
+                block.style.width = `${(entry.end - entry.start) * 30}px`;
+                block.textContent = entry.process;
+                ganttChartDiv.appendChild(block);
+                
+                // Add start time mark
+                if (index === 0) {
+                    const startMark = document.createElement('div');
+                    startMark.className = 'time-mark';
+                    startMark.style.left = '0px';
+                    startMark.textContent = entry.start;
+                    ganttChartDiv.appendChild(startMark);
+                }
+                
+                // Add end time mark
+                const endMark = document.createElement('div');
+                endMark.className = 'time-mark';
+                endMark.style.left = `${(entry.end - ganttChart[0].start) * 30}px`;
+                endMark.textContent = entry.end;
+                ganttChartDiv.appendChild(endMark);
+            });
+            
+            resultsDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
